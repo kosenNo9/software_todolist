@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TaskFlow — 課題管理</title>
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/components.css">
+<link rel="stylesheet" href="css/views.css">
+</head>
+<body>
+
+<!-- ========== SIDEBAR ========== -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <span class="logo-mark">TF</span>
+    <span class="logo-text">TaskFlow</span>
+  </div>
+  <nav class="sidebar-nav">
+    <button class="nav-item active" data-view="list" onclick="showView('list')">
+      <svg viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      タスク一覧
+    </button>
+    <button class="nav-item" data-view="add-task" onclick="showView('add-task')">
+      <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+      タスク登録
+    </button>
+    <button class="nav-item" data-view="add-label" onclick="showView('add-label')">
+      <svg viewBox="0 0 24 24"><path d="M7 7h.01M7 3h5c.5 0 1 .2 1.4.6l7 7a2 2 0 010 2.8l-7 7a2 2 0 01-2.8 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z"/></svg>
+      ラベル管理
+    </button>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="stat-pill" id="stat-total">0 タスク</div>
+  </div>
+</aside>
+
+<!-- ========== MAIN ========== -->
+<main class="main">
+
+  <!-- ---- LIST VIEW ---- -->
+  <section id="view-list" class="view active">
+    <header class="view-header">
+      <h1>タスク一覧</h1>
+      <div class="header-controls">
+        <div class="tab-group">
+          <button class="tab active" data-status="all"   onclick="filterStatus('all')">すべて</button>
+          <button class="tab"        data-status="todo"  onclick="filterStatus('todo')">未着手</button>
+          <button class="tab"        data-status="doing" onclick="filterStatus('doing')">進行中</button>
+          <button class="tab"        data-status="done"  onclick="filterStatus('done')">完了</button>
+        </div>
+        <div class="label-filter-wrap">
+          <button class="btn-filter" onclick="toggleLabelFilter()">
+            <svg viewBox="0 0 24 24"><path d="M3 4h18l-7 8v5l-4 2V12L3 4z"/></svg>
+            ラベルで絞り込む
+          </button>
+          <div id="label-filter-dropdown" class="label-dropdown hidden">
+            <div id="label-filter-list"></div>
+            <button class="btn-clear-filter" onclick="clearLabelFilter()">絞り込みを解除</button>
+          </div>
+        </div>
+      </div>
+    </header>
+    <div id="task-list" class="task-grid"></div>
+    <div id="empty-state" class="empty-state hidden">
+      <div class="empty-icon">📋</div>
+      <p>タスクがありません</p>
+      <button onclick="showView('add-task')" class="btn-primary">最初のタスクを登録</button>
+    </div>
+  </section>
+
+  <!-- ---- ADD TASK VIEW ---- -->
+  <section id="view-add-task" class="view">
+    <header class="view-header">
+      <h1>タスク登録</h1>
+      <button class="btn-close" onclick="cancelForm()" title="中断して消去">✕</button>
+    </header>
+    <div class="form-card">
+      <div class="form-group">
+        <label>タスク名 <span class="required">*</span></label>
+        <input type="text" id="new-task-name" maxlength="30" placeholder="タスク名を入力（最大30文字）"
+               oninput="updateCharCount('new-task-name','count-name')">
+        <span class="char-count"><span id="count-name">0</span>/30</span>
+      </div>
+      <div class="form-group">
+        <label>詳細</label>
+        <textarea id="new-task-detail" maxlength="100" placeholder="詳細を入力（最大100文字）"
+                  oninput="updateCharCount('new-task-detail','count-detail')"></textarea>
+        <span class="char-count"><span id="count-detail">0</span>/100</span>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>種類 <span class="required">*</span></label>
+          <div class="type-toggle">
+            <button class="type-btn active" data-type="課題">📝 課題</button>
+            <button class="type-btn"        data-type="テスト">📖 テスト</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>ラベル（科目）</label>
+          <select id="new-task-label"></select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>期限 <span class="required">*</span></label>
+        <input type="datetime-local" id="new-task-deadline">
+      </div>
+      <div class="form-actions">
+        <button class="btn-secondary" onclick="cancelForm()">キャンセル</button>
+        <button class="btn-primary"   onclick="registerTask()">登録する</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ---- DETAIL VIEW ---- -->
+  <section id="view-detail" class="view">
+    <header class="view-header">
+      <button class="btn-back" onclick="showView('list')">← 一覧へ</button>
+      <div class="header-actions">
+        <button class="btn-danger-outline" onclick="confirmDelete(currentTaskId)">削除</button>
+        <button class="btn-primary"        onclick="showEditView(currentTaskId)">編集</button>
+      </div>
+    </header>
+    <div id="detail-content" class="detail-card"></div>
+  </section>
+
+  <!-- ---- EDIT VIEW ---- -->
+  <section id="view-edit" class="view">
+    <header class="view-header">
+      <h1>タスク編集</h1>
+      <button class="btn-close" onclick="cancelEdit()" title="変更をリセット">✕</button>
+    </header>
+    <div class="form-card">
+      <div class="form-group">
+        <label>タスク名 <span class="required">*</span></label>
+        <input type="text" id="edit-task-name" maxlength="30"
+               oninput="updateCharCount('edit-task-name','edit-count-name')">
+        <span class="char-count"><span id="edit-count-name">0</span>/30</span>
+      </div>
+      <div class="form-group">
+        <label>詳細</label>
+        <textarea id="edit-task-detail" maxlength="100"
+                  oninput="updateCharCount('edit-task-detail','edit-count-detail')"></textarea>
+        <span class="char-count"><span id="edit-count-detail">0</span>/100</span>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>種類 <span class="required">*</span></label>
+          <div class="type-toggle" id="edit-type-toggle">
+            <button class="type-btn active" data-type="課題">📝 課題</button>
+            <button class="type-btn"        data-type="テスト">📖 テスト</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>ラベル（科目）</label>
+          <select id="edit-task-label"></select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>期限 <span class="required">*</span></label>
+        <input type="datetime-local" id="edit-task-deadline">
+      </div>
+      <div class="form-group">
+        <label>進捗状態</label>
+        <div class="status-select">
+          <button class="status-btn" data-status="todo">未着手</button>
+          <button class="status-btn" data-status="doing">進行中</button>
+          <button class="status-btn" data-status="done">完了</button>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn-secondary" onclick="cancelEdit()">キャンセル</button>
+        <button class="btn-primary"   onclick="updateTask()">更新する</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ---- LABEL VIEW ---- -->
+  <section id="view-add-label" class="view">
+    <header class="view-header">
+      <h1>ラベル管理</h1>
+    </header>
+    <div class="form-card">
+      <div class="form-group">
+        <label>新しいラベルを追加</label>
+        <div class="label-input-row">
+          <input type="text" id="new-label-input" maxlength="30" placeholder="科目名（最大30文字）"
+                 oninput="updateCharCount('new-label-input','count-label')"
+                 onkeydown="if(event.key==='Enter')addLabel()">
+          <button class="btn-primary" onclick="addLabel()">追加</button>
+        </div>
+        <span class="char-count"><span id="count-label">0</span>/30</span>
+      </div>
+      <div class="label-list-section">
+        <h3>登録済みラベル</h3>
+        <div id="label-list" class="label-chips"></div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ========== MODALS ========== -->
+<div id="confirm-modal" class="modal-overlay hidden">
+  <div class="modal">
+    <p class="modal-msg">このタスクを削除しますか？<br><small>この操作は取り消せません。</small></p>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal()">キャンセル</button>
+      <button class="btn-danger"    onclick="deleteTask()">削除する</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast hidden"></div>
+
+<!-- JS: 依存関係順に読み込む -->
+<script src="js/storage.js"></script>
+<script src="js/task.js"></script>
+<script src="js/label.js"></script>
+<script src="js/filter.js"></script>
+<script src="js/notification.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
