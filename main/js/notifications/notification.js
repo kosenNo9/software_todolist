@@ -1,45 +1,113 @@
 /**
- * notification.js (テスト用)
+ * notification.js — 本番用
+ *
+ * 役割：
+ *  - Service Worker（sw.js）の登録・管理
+ *  - タスクデータの変化を検知し、通知スケジュールを SW に同期する
+ *  - 通知許可の取得
+ *
+ * SW との通信プロトコル（postMessage）：
+ *  SYNC_TASKS  { type, tasks }        … タスク一覧を同期（起動時・更新時）
+ *  CANCEL_TASK { type, taskId }       … 削除・完了時に特定タスクをキャンセル
+ *  RESET_ALL   { type }               … 全スケジュールをリセット
  */
+
 const NotificationManager = (() => {
-  async function start() {
-    // 1. ブラウザが対応しているかチェック
-    if (!('serviceWorker' in navigator) || !('Notification' in window)) {
-      console.log('このブラウザはService Workerまたは通知に対応していません。');
+  const SW_PATH    = 'sw.js';   // index.html と同階層に置く
+  const SYNC_INTERVAL_MS = 60 * 60 * 1000; // 1時間ごとに再同期
+
+  let _swRegistration = null;  // ServiceWorkerRegistration
+  let _getTasksFn     = null;  // main.js から渡される最新タスク getter
+
+  /* ===========================
+     公開 API
+  =========================== */
+
+  /**
+   * 初期化：SW 登録 → 許可取得 → 初回同期 → 定期同期
+   * @param {() => object[]} getTasksFn - 最新タスク配列を返す関数
+   */
+  async function start(getTasksFn) {
+    _getTasksFn = getTasksFn;
+
+    if (!_isSupported()) {
+      console.warn('[Notification] Service Worker / Notification API 非対応');
       return;
     }
 
-    // 2. 通知の許可を得る
-    const permission = await Notification.requestPermission();
+    const permission = await _requestPermission();
     if (permission !== 'granted') {
-      console.log('通知が拒否されました。');
+      console.warn('[Notification] 通知が許可されませんでした');
       return;
     }
 
     try {
-      // 3. Service Worker（sw.js）を登録
-      // パスは index.html から見た相対パスにします
-      const registration = await navigator.serviceWorker.register('sw.js');
-      console.log('Service Worker 登録完了:', registration);
+      _swRegistration = await navigator.serviceWorker.register(SW_PATH);
+      console.info('[Notification] SW 登録完了');
 
-      // 4. 登録が完了したら、5秒後に通知を出すよう裏（sw.js）に命令を送る
-      // 登録直後はアクティブになるまで一瞬タイムラグがあるので、少し待つか準備完了を確認します
-      navigator.serviceWorker.ready.then((reg) => {
-        if (reg.active) {
-          reg.active.postMessage({
-            type: 'SCHEDULE_NOTIFICATION',
-            title: '📅 Todoアプリテスト',
-            body: 'サイトを閉じても通知が届きました！',
-            delay: 5000 // 5秒（5000ミリ秒）
-          });
-          console.log('🚨 5秒後に通知を予約しました！今すぐブラウザのタブを閉じてください！');
-        }
-      });
+      // SW がアクティブになるのを待ってから同期
+      await navigator.serviceWorker.ready;
+      _syncAll();
 
-    } catch (error) {
-      console.error('Service Worker の登録に失敗しました:', error);
+      // 定期再同期（タブを開いている間）
+      setInterval(_syncAll, SYNC_INTERVAL_MS);
+
+    } catch (err) {
+      console.error('[Notification] SW 登録失敗:', err);
     }
   }
 
-  return { start };
+  /**
+   * タスクの追加・更新後に呼ぶ。
+   * SW に最新タスク一覧を再送信してスケジュールを更新する。
+   */
+  function syncOnTaskChange() {
+    if (_isReady()) _syncAll();
+  }
+
+  /**
+   * タスク削除・完了時に呼ぶ。
+   * 対象タスクの通知スケジュールだけをキャンセルする。
+   * @param {string} taskId
+   */
+  function cancelTask(taskId) {
+    if (_isReady()) {
+      _postMessage({ type: 'CANCEL_TASK', taskId });
+    }
+  }
+
+  /* ===========================
+     内部関数
+  =========================== */
+
+  function _isSupported() {
+    return ('serviceWorker' in navigator) && ('Notification' in window);
+  }
+
+  function _isReady() {
+    return _swRegistration && _swRegistration.active;
+  }
+
+  async function _requestPermission() {
+    if (Notification.permission !== 'default') return Notification.permission;
+    return await Notification.requestPermission();
+  }
+
+  /** 最新タスクを SW に送信してスケジュールを同期する */
+  function _syncAll() {
+    if (!_isReady() || !_getTasksFn) return;
+    const tasks = _getTasksFn();
+    _postMessage({ type: 'SYNC_TASKS', tasks });
+  }
+
+  /** SW の active worker にメッセージを送る */
+  function _postMessage(message) {
+    try {
+      _swRegistration.active.postMessage(message);
+    } catch (err) {
+      console.error('[Notification] postMessage 失敗:', err);
+    }
+  }
+
+  return { start, syncOnTaskChange, cancelTask };
 })();
