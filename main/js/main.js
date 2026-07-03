@@ -2,37 +2,32 @@
  * main.js
  * アプリの初期化とイベント結線のみを担当するエントリポイント。
  * ビジネスロジックはtask.js / label.js / filter.js、
- * DOM描画はui.js、永続化はstorage.js に委譲する。
+ * DOM描画はui.js、永続化はstorage.js、通知はnotification.js に委譲する。
  */
 
 /* ===========================
    アプリ状態
 =========================== */
-let tasks          = [];
-let labels         = [];
-let currentTaskId  = null;
-let editBackup     = null;
+let tasks         = [];
+let labels        = [];
+let currentTaskId = null;
+let editBackup    = null;
 
 /* ===========================
    初期化
 =========================== */
 document.addEventListener('DOMContentLoaded', () => {
-  // データ読み込み
   tasks  = Storage.loadTasks();
   labels = Storage.loadLabels();
 
-  // 初期描画
   _refreshList();
   UI.syncLabelSelects(labels);
   UI.renderLabelChips(labels, _handleDeleteLabel);
   UI.renderLabelFilterList(labels, Filter.getSelectedLabels(), _handleLabelFilterToggle);
   UI.updateStat(tasks.length);
 
-  // 通知開始
-  NotificationManager.start(
-    () => tasks,
-    updated => { tasks = updated; Storage.saveTasks(tasks); }
-  );
+  // 通知開始（タスク getter を渡すだけ。保存は task.js / storage.js が担う）
+  NotificationManager.start(() => tasks);
 
   // グローバルクリック（ドロップダウンを閉じる）
   document.addEventListener('click', e => {
@@ -45,15 +40,9 @@ document.addEventListener('DOMContentLoaded', () => {
    画面遷移
 =========================== */
 function showView(viewId) {
-  if (viewId === 'add-task') {
-    UI.resetAddForm(labels);
-  }
-  if (viewId === 'add-label') {
-    UI.renderLabelChips(labels, _handleDeleteLabel);
-  }
-  if (viewId === 'list') {
-    _refreshList();
-  }
+  if (viewId === 'add-task') UI.resetAddForm(labels);
+  if (viewId === 'add-label') UI.renderLabelChips(labels, _handleDeleteLabel);
+  if (viewId === 'list') _refreshList();
   UI.showView(viewId);
 }
 
@@ -68,6 +57,10 @@ function registerTask() {
   tasks = TaskManager.create(tasks, values);
   UI.showToast('タスクを登録しました ✓', 'success');
   UI.updateStat(tasks.length);
+
+  // 新タスクの通知スケジュールを SW に反映
+  NotificationManager.syncOnTaskChange();
+
   showView('list');
 }
 
@@ -129,7 +122,15 @@ function showDetail(id) {
 function _handleStatusChange(id, status) {
   tasks = TaskManager.changeStatus(tasks, id, status);
   UI.showToast('ステータスを更新しました', 'success');
-  showDetail(id); // 詳細を再描画
+
+  // 完了になった場合はそのタスクの通知をキャンセル
+  if (status === 'done') {
+    NotificationManager.cancelTask(id);
+  } else {
+    NotificationManager.syncOnTaskChange();
+  }
+
+  showDetail(id);
 }
 
 /* ===========================
@@ -138,7 +139,7 @@ function _handleStatusChange(id, status) {
 function showEditView(id) {
   const task = TaskManager.findById(tasks, id);
   if (!task) return;
-  editBackup = JSON.parse(JSON.stringify(task)); // バックアップ保存
+  editBackup = JSON.parse(JSON.stringify(task));
   UI.populateEditForm(task, labels);
   UI.showView('edit');
 }
@@ -150,11 +151,14 @@ function updateTask() {
 
   tasks = TaskManager.update(tasks, currentTaskId, values);
   UI.showToast('タスクを更新しました ✓', 'success');
+
+  // 期限などが変わった可能性があるので再同期
+  NotificationManager.syncOnTaskChange();
+
   showDetail(currentTaskId);
 }
 
 function cancelEdit() {
-  // バックアップから復元
   if (editBackup) {
     tasks = TaskManager.update(tasks, editBackup.id, editBackup);
     editBackup = null;
@@ -171,6 +175,9 @@ function confirmDelete(id) {
 }
 
 function deleteTask() {
+  // 削除前に通知キャンセル
+  NotificationManager.cancelTask(currentTaskId);
+
   tasks = TaskManager.remove(tasks, currentTaskId);
   UI.closeConfirmModal();
   UI.showToast('タスクを削除しました', 'success');
@@ -186,15 +193,14 @@ function closeModal() {
    ラベル管理
 =========================== */
 function addLabel() {
-  const input = document.getElementById('new-label-input');
-  const name  = input.value.trim();
+  const input  = document.getElementById('new-label-input');
+  const name   = input.value.trim();
   const errors = LabelManager.validate(name, labels);
   if (errors.length > 0) return UI.showToast(errors[0], 'error');
 
   labels = LabelManager.add(labels, name);
   input.value = '';
   document.getElementById('count-label').textContent = '0';
-
   _afterLabelChange();
   UI.showToast('ラベルを追加しました ✓', 'success');
 }
