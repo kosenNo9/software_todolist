@@ -27,7 +27,10 @@ document.addEventListener('DOMContentLoaded', () => {
   UI.updateStat(tasks.length);
 
   // 通知開始（タスク getter を渡すだけ。保存は task.js / storage.js が担う）
-  NotificationManager.start(() => tasks);
+  NotificationManager.start(
+    () => tasks,
+    updated => { tasks = updated; Storage.saveTasks(tasks); }
+  );
 
   // グローバルクリック（ドロップダウンを閉じる）
   document.addEventListener('click', e => {
