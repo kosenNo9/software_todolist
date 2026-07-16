@@ -89,17 +89,7 @@ body { display: flex; min-height: 100vh; }
   stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
   flex-shrink: 0;
 }
-.nav-item:hover { background: var(--surface2); color: var(--text); }
-.nav-item.active  { background: rgba(108,123,255,.15); color: var(--accent); }
 
-.sidebar-footer { margin-top: auto; }
-.stat-pill {
-  padding: 8px 12px;
-  border-radius: var(--radius-sm);
-  background: var(--surface2);
-  color: var(--text-muted);
-  font-size: 12px; text-align: center;
-}
 
 /* ---- view switching ---- */
 .view { display: none; }
