@@ -10,13 +10,19 @@ const TaskManager = (() => {
   /**
    * タスクデータを検証し、エラーメッセージの配列を返す。
    * エラーがなければ空配列を返す。
+   * 追加：期限設定をしていない場合に加えて五桁以上の年数を打ち込んだ場合にエラーメッセージの配列を返す。
    */
   function validate({ name, detail, deadline }) {
     const errors = [];
     if (!name || name.trim().length === 0)   errors.push('タスク名を入力してください');
     if (name && name.trim().length > 30)      errors.push('タスク名は30文字以内です');
     if (detail && detail.length > 100)        errors.push('詳細は100文字以内です');
-    if (!deadline)                            errors.push('期限を設定してください');
+    if (!deadline){
+      errors.push('期限を設定してください');
+    }else if(isNaN(new Date(deadline).getTime())){
+      errors.push('正しい日時を入力してください')
+    }
+
     return errors;
   }
 
