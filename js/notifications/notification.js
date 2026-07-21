@@ -41,43 +41,43 @@ const NotificationManager = (() => {
   function cancelTask(_taskId) {}
 
   function _check() {
-  if (!_getTasksFn) return;
+    if (!_getTasksFn) return;
 
-  const tasks     = _getTasksFn();
-  const now       = Date.now();
-  const MINUTE_MS = 60 * 1000;
-  const HOUR_MS   = 60 * MINUTE_MS;
-  const DAY_MS    = 24 * HOUR_MS;
-  let   changed   = false;
+    const tasks     = _getTasksFn();
+    const now       = Date.now();
+    const MINUTE_MS = 60 * 1000;
+    const HOUR_MS   = 60 * MINUTE_MS;
+    const DAY_MS    = 24 * HOUR_MS;
+    let   changed   = false;
 
-  tasks.forEach(task => {
-    if (task.status === 'done') return;
+    tasks.forEach(task => {
+      if (task.status === 'done') return;
 
-    const dl    = new Date(task.deadline).getTime();
-    const st    = task.start ? new Date(task.start).getTime() : null;
-    const diffDl = dl - now;
-    const diffSt = st ? st - now : null;
+      const dl    = new Date(task.deadline).getTime();
+      const st    = task.start ? new Date(task.start).getTime() : null;
+      const diffDl = dl - now;
+      const diffSt = st ? st - now : null;
 
-    /* --- 期限1日前（未着手・進行中） --- */
-    if (diffDl > 0 && diffDl <= DAY_MS && diffDl > DAY_MS - MINUTE_MS) {
-      _notify(
-        `${task.name}　明日が期限です`,
-        `期限：${_fmt(task.deadline)}`,
-        `${task.id}_deadline_warning`
-      );
-    }
-
-    /* --- 開始時刻の通知（未着手のみ） --- */
-    if (task.status === 'todo' && diffSt !== null) {
-
-      /* 開始1日前 */
-      if (diffSt > 0 && diffSt <= DAY_MS && diffSt > DAY_MS - MINUTE_MS) {
+      /* --- 期限1日前（未着手・進行中） --- */
+      if (diffDl > 0 && diffDl <= DAY_MS && diffDl > DAY_MS - MINUTE_MS) {
         _notify(
-          `${task.name} 明日から開始です`,
-          `開始：${_fmt(task.start)}`,
-          `${task.id}_start_day`
+          `${task.name}　明日が期限です`,
+          `期限：${_fmt(task.deadline)}`,
+          `${task.id}_deadline_warning`
         );
       }
+
+      /* --- 開始時刻の通知（未着手のみ） --- */
+      if (task.status === 'todo' && diffSt !== null) {
+
+        /* 開始1日前 */
+        if (diffSt > 0 && diffSt <= DAY_MS && diffSt > DAY_MS - MINUTE_MS) {
+          _notify(
+            `${task.name} 明日から開始です`,
+            `開始：${_fmt(task.start)}`,
+            `${task.id}_start_day`
+          );
+        }
 
       /* 開始1時間前 */
       if (diffSt > 0 && diffSt <= HOUR_MS && diffSt > HOUR_MS - MINUTE_MS) {
@@ -116,8 +116,21 @@ const NotificationManager = (() => {
   if (changed && _saveTasksFn) _saveTasksFn(tasks);
 }
 
+  let _notifyQueue = [];
+  let _notifyTimer = null;
+
   function _notify(title, body, tag) {
-    new Notification(title, { body, tag, renotify: true });
+    _notifyQueue.push({ title, body, tag });
+    if (_notifyTimer) return;
+    _notifyTimer = setInterval(() => {
+      if (_notifyQueue.length === 0) {
+        clearInterval(_notifyTimer);
+        _notifyTimer = null;
+        return;
+      }
+      const { title, body, tag } = _notifyQueue.shift();
+      new Notification(title, { body, tag, renotify: true });
+    }, 500);
   }
 
   function _fmt(dt) {
