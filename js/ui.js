@@ -147,6 +147,28 @@ const UI = (() => {
   =========================== */
 
   /**
+   * 種類フィルタ（課題／テスト）のチェックリストを再描画する。
+   * @param {string[]} selectedTypes - 選択中の種類
+   * @param {Function} onToggle      - (type: string, checked: boolean) => void
+   */
+  function renderTypeFilterList(selectedTypes, onToggle) {
+    const container = document.getElementById('type-filter-list');
+    container.innerHTML = '';
+    ['課題', 'テスト'].forEach(type => {
+      const isSelected = selectedTypes.includes(type);
+      const item = document.createElement('label');
+      item.className = 'label-filter-item' + (isSelected ? ' selected' : '');
+      const icon = type === '課題' ? '📝' : '📖';
+      item.innerHTML = `<input type="checkbox" ${isSelected ? 'checked' : ''}> ${icon} ${escHtml(type)}`;
+      item.querySelector('input').addEventListener('change', e => {
+        item.classList.toggle('selected', e.target.checked);
+        onToggle(type, e.target.checked);
+      });
+      container.appendChild(item);
+    });
+  }
+
+  /**
    * ラベルフィルタのチェックリストを再描画する。
    * @param {string[]} labels        - 全ラベル一覧
    * @param {string[]} selectedLabels - 選択中のラベル
@@ -393,6 +415,7 @@ const UI = (() => {
     showView,
     renderTaskList,
     updateStatusTabs,
+    renderTypeFilterList,
     renderLabelFilterList,
     toggleLabelDropdown,
     closeLabelDropdown,
