@@ -14,6 +14,32 @@ let currentTaskId = null;
 let editBackup    = null;
 
 /* ===========================
+   種類トグル（課題／テスト）の切り替え
+   ※ 他の初期化処理（Storage読み込み等）でエラーが起きても
+     このボタンだけは必ず反応するよう、DOMContentLoadedより先に
+     documentへのイベント委譲として登録しておく。
+=========================== */
+document.addEventListener('click', e => {
+  const btn = e.target.closest('.type-toggle .type-btn');
+  if (!btn) return;
+  const toggle = btn.closest('.type-toggle');
+  toggle.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+});
+
+/* ===========================
+   編集画面の進捗状態ボタンの切り替え
+   ※ 同様の理由でDOMContentLoadedより先に委譲登録しておく。
+=========================== */
+document.addEventListener('click', e => {
+  const btn = e.target.closest('.status-select .status-btn');
+  if (!btn) return;
+  const select = btn.closest('.status-select');
+  select.querySelectorAll('.status-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+});
+
+/* ===========================
    初期化
 =========================== */
 document.addEventListener('DOMContentLoaded', () => {
@@ -23,29 +49,17 @@ document.addEventListener('DOMContentLoaded', () => {
   _refreshList();
   UI.syncLabelSelects(labels);
   UI.renderLabelChips(labels, _handleDeleteLabel);
+  UI.renderTypeFilterList(Filter.getSelectedTypes(), _handleTypeFilterToggle);
   UI.renderLabelFilterList(labels, Filter.getSelectedLabels(), _handleLabelFilterToggle);
   UI.updateStat(tasks.length);
 
   // 通知開始（タスク getter を渡すだけ。保存は task.js / storage.js が担う）
-  NotificationManager.start(
-    () => tasks,
-    updated => { tasks = updated; Storage.saveTasks(tasks); }
-  );
+  NotificationManager.start(() => tasks);
 
   // グローバルクリック（ドロップダウンを閉じる）
   document.addEventListener('click', e => {
     const wrap = document.querySelector('.label-filter-wrap');
     if (wrap && !wrap.contains(e.target)) UI.closeLabelDropdown();
-  });
-
-  // 種類トグル（課題／テスト）の切り替え
-  document.querySelectorAll('.type-toggle').forEach(toggle => {
-    toggle.addEventListener('click', e => {
-      const btn = e.target.closest('.type-btn');
-      if (!btn || !toggle.contains(btn)) return;
-      toggle.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-    });
   });
 });
 
@@ -109,15 +123,23 @@ function toggleLabelFilter() {
 
 function _handleLabelFilterToggle(label, checked) {
   Filter.toggleLabel(label);
-  UI.updateFilterButton(Filter.hasLabelFilter());
+  UI.updateFilterButton(Filter.hasLabelFilter() || Filter.hasTypeFilter());
+  _refreshList();
+}
+
+function _handleTypeFilterToggle(type, checked) {
+  Filter.toggleType(type);
+  UI.updateFilterButton(Filter.hasLabelFilter() || Filter.hasTypeFilter());
   _refreshList();
 }
 
 function clearLabelFilter() {
   Filter.clearLabels();
+  Filter.clearTypes();
   UI.updateFilterButton(false);
   UI.closeLabelDropdown();
   UI.renderLabelFilterList(labels, [], _handleLabelFilterToggle);
+  UI.renderTypeFilterList([], _handleTypeFilterToggle);
   _refreshList();
 }
 
