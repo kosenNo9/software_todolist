@@ -28,6 +28,18 @@ document.addEventListener('click', e => {
 });
 
 /* ===========================
+   編集画面の進捗状態ボタンの切り替え
+   ※ 同様の理由でDOMContentLoadedより先に委譲登録しておく。
+=========================== */
+document.addEventListener('click', e => {
+  const btn = e.target.closest('.status-select .status-btn');
+  if (!btn) return;
+  const select = btn.closest('.status-select');
+  select.querySelectorAll('.status-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+});
+
+/* ===========================
    初期化
 =========================== */
 document.addEventListener('DOMContentLoaded', () => {
@@ -42,10 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
   UI.updateStat(tasks.length);
 
   // 通知開始（タスク getter を渡すだけ。保存は task.js / storage.js が担う）
-  NotificationManager.start(
-    () => tasks,
-    updated => { tasks = updated; Storage.saveTasks(tasks); }
-  );
+  NotificationManager.start(() => tasks);
 
   // グローバルクリック（ドロップダウンを閉じる）
   document.addEventListener('click', e => {
