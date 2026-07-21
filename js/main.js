@@ -37,6 +37,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const wrap = document.querySelector('.label-filter-wrap');
     if (wrap && !wrap.contains(e.target)) UI.closeLabelDropdown();
   });
+
+  // 種類トグル（課題／テスト）の切り替え
+  document.querySelectorAll('.type-toggle').forEach(toggle => {
+    toggle.addEventListener('click', e => {
+      const btn = e.target.closest('.type-btn');
+      if (!btn || !toggle.contains(btn)) return;
+      toggle.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  });
 });
 
 /* ===========================
