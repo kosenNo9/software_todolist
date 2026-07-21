@@ -8,6 +8,7 @@ const Filter = (() => {
   /* ---------- 状態 ---------- */
   let currentStatus = 'all';     // 'all' | 'todo' | 'doing' | 'done'
   let selectedLabels = [];       // string[]
+  let selectedTypes = [];        // string[]  '課題' | 'テスト'
 
   /* ---------- ステータスフィルタ ---------- */
 
@@ -41,6 +42,28 @@ const Filter = (() => {
     return selectedLabels.length > 0;
   }
 
+  /* ---------- 種類フィルタ ---------- */
+
+  function toggleType(type) {
+    if (selectedTypes.includes(type)) {
+      selectedTypes = selectedTypes.filter(t => t !== type);
+    } else {
+      selectedTypes = [...selectedTypes, type];
+    }
+  }
+
+  function clearTypes() {
+    selectedTypes = [];
+  }
+
+  function getSelectedTypes() {
+    return [...selectedTypes];
+  }
+
+  function hasTypeFilter() {
+    return selectedTypes.length > 0;
+  }
+
   /* ---------- 絞り込み ---------- */
 
   /**
@@ -55,12 +78,16 @@ const Filter = (() => {
     if (selectedLabels.length > 0) {
       result = result.filter(t => selectedLabels.includes(t.label));
     }
+    if (selectedTypes.length > 0) {
+      result = result.filter(t => selectedTypes.includes(t.type));
+    }
     return result;
   }
 
   return {
     setStatus, getStatus,
     toggleLabel, clearLabels, getSelectedLabels, hasLabelFilter,
+    toggleType, clearTypes, getSelectedTypes, hasTypeFilter,
     apply,
   };
 })();
