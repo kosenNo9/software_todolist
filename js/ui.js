@@ -122,7 +122,8 @@ const UI = (() => {
         <span class="card-type-badge type-${task.type}">${task.type}</span>
       </div>
       <div class="card-label">${labelHtml}</div>
-      <div class="card-deadline ${dlClass}">📅 ${formatDeadline(task.deadline)}</div>
+      ${task.start ? `<div class="card-deadline" style="color:var(--text-muted); font-size:12px;">⏳ 開始 ${formatDeadline(task.start)}</div>` : ''}
+      <div class="card-deadline ${dlClass}">📅 期限 ${formatDeadline(task.deadline)}</div>
       <div class="card-footer">
         <span class="status-badge badge-${task.status}">${statusLabel(task.status)}</span>
         <span class="card-time-left">${timeLeft}</span>
@@ -232,6 +233,13 @@ const UI = (() => {
         <div class="detail-label-h">詳細</div>
         <div class="detail-body">${escHtml(task.detail)}</div>
       </div>` : ''}
+      ${task.start ? `
+      <div class="detail-section">
+        <div class="detail-label-h">開始日時</div>
+        <div class="deadline-display">
+          ⏳ ${formatDeadline(task.start)}
+        </div>
+      </div>` : ''}
       <div class="detail-section">
         <div class="detail-label-h">期限</div>
         <div class="deadline-display ${dlClass}">
@@ -264,6 +272,7 @@ const UI = (() => {
   function resetAddForm(labels) {
     document.getElementById('new-task-name').value   = '';
     document.getElementById('new-task-detail').value = '';
+    document.getElementById('new-task-start').value    = '';
     document.getElementById('new-task-deadline').value = '';
     document.getElementById('count-name').textContent   = '0';
     document.getElementById('count-detail').textContent = '0';
@@ -278,6 +287,7 @@ const UI = (() => {
     return {
       name:     document.getElementById('new-task-name').value,
       detail:   document.getElementById('new-task-detail').value,
+      start:    document.getElementById('new-task-start').value,
       deadline: document.getElementById('new-task-deadline').value,
       label:    document.getElementById('new-task-label').value,
       type:     document.querySelector('#view-add-task .type-btn.active')?.dataset.type || '課題',
@@ -292,6 +302,7 @@ const UI = (() => {
   function populateEditForm(task, labels) {
     document.getElementById('edit-task-name').value      = task.name;
     document.getElementById('edit-task-detail').value    = task.detail || '';
+    document.getElementById('edit-task-start').value      = task.start || '';
     document.getElementById('edit-task-deadline').value  = task.deadline;
     document.getElementById('edit-count-name').textContent   = task.name.length;
     document.getElementById('edit-count-detail').textContent = (task.detail || '').length;
@@ -311,6 +322,7 @@ const UI = (() => {
     return {
       name:     document.getElementById('edit-task-name').value,
       detail:   document.getElementById('edit-task-detail').value,
+      start:    document.getElementById('edit-task-start').value,
       deadline: document.getElementById('edit-task-deadline').value,
       label:    document.getElementById('edit-task-label').value,
       type:     document.querySelector('#edit-type-toggle .type-btn.active')?.dataset.type || '課題',
