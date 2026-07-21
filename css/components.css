@@ -1,5 +1,5 @@
 /* ===========================
-   components.css — 再利用可能なUI部品
+   components.css — 再利用可能なUI部品（ライトテーマ版）
 =========================== */
 
 /* ---- buttons ---- */
@@ -9,15 +9,15 @@
   color: #fff; font-size: 14px; font-weight: 600;
   cursor: pointer; transition: background .15s;
 }
-.btn-primary:hover { background: #7d8cff; }
+.btn-primary:hover { background: #4338ca; }
 
 .btn-secondary {
   padding: 9px 20px; border-radius: var(--radius-sm);
-  border: 1px solid var(--border); background: none;
+  border: 1px solid var(--border); background: var(--surface);
   color: var(--text-muted); font-size: 14px;
   cursor: pointer; transition: all .15s;
 }
-.btn-secondary:hover { border-color: var(--text-muted); color: var(--text); }
+.btn-secondary:hover { border-color: var(--text-muted); color: var(--text); background: var(--surface2); }
 
 .btn-danger {
   padding: 9px 20px; border-radius: var(--radius-sm);
@@ -25,15 +25,15 @@
   color: #fff; font-size: 14px; font-weight: 600;
   cursor: pointer; transition: background .15s;
 }
-.btn-danger:hover { background: #d43a3a; }
+.btn-danger:hover { background: #dc2626; }
 
 .btn-danger-outline {
   padding: 9px 20px; border-radius: var(--radius-sm);
-  border: 1px solid var(--red); background: none;
+  border: 1px solid var(--red); background: var(--surface);
   color: var(--red); font-size: 14px;
   cursor: pointer; transition: all .15s;
 }
-.btn-danger-outline:hover { background: rgba(240,80,80,.1); }
+.btn-danger-outline:hover { background: rgba(239, 68, 68, 0.08); }
 
 .btn-close {
   background: none; border: none;
@@ -41,7 +41,7 @@
   cursor: pointer; padding: 4px 8px;
   border-radius: var(--radius-sm); transition: all .15s; line-height: 1;
 }
-.btn-close:hover { background: rgba(240,80,80,.12); color: var(--red); }
+.btn-close:hover { background: rgba(239, 68, 68, 0.1); color: var(--red); }
 
 .btn-back {
   background: none; border: none;
@@ -54,6 +54,7 @@
 .form-card {
   background: var(--surface); border: 1px solid var(--border);
   border-radius: var(--radius); padding: 32px; max-width: 600px;
+  box-shadow: var(--shadow);
 }
 .form-group { margin-bottom: 20px; }
 .form-group label {
@@ -74,12 +75,12 @@ textarea {
   outline: none; transition: border-color .15s;
   appearance: none;
 }
-input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+input:focus, select:focus, textarea:focus { border-color: var(--accent); background: #fff; }
 textarea { resize: vertical; min-height: 80px; }
-select option { background: var(--surface2); }
+select option { background: var(--surface); color: var(--text); }
 
 input[type="datetime-local"]::-webkit-calendar-picker-indicator {
-  filter: invert(1) opacity(.5); cursor: pointer;
+  opacity: 0.6; cursor: pointer;
 }
 
 .char-count {
@@ -95,38 +96,38 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
 .type-toggle { display: flex; gap: 8px; }
 .type-btn {
   flex: 1; padding: 9px; border-radius: var(--radius-sm);
-  border: 1px solid var(--border); background: none;
+  border: 1px solid var(--border); background: var(--surface);
   color: var(--text-muted); font-size: 13px;
   cursor: pointer; transition: all .15s;
 }
 .type-btn:hover { border-color: var(--accent); color: var(--text); }
 .type-btn.active {
-  background: rgba(108,123,255,.15);
-  color: var(--accent); border-color: var(--accent);
+  background: rgba(79, 70, 229, 0.1);
+  color: var(--accent); border-color: var(--accent); font-weight: 600;
 }
 .type-btn[data-type="テスト"].active {
-  background: rgba(240,168,67,.15);
-  color: var(--accent2); border-color: var(--accent2);
+  background: rgba(217, 119, 6, 0.1);
+  color: var(--accent2); border-color: var(--accent2); font-weight: 600;
 }
 
 /* ---- status selector ---- */
 .status-select { display: flex; gap: 8px; }
 .status-btn {
   flex: 1; padding: 9px; border-radius: var(--radius-sm);
-  border: 1px solid var(--border); background: none;
+  border: 1px solid var(--border); background: var(--surface);
   color: var(--text-muted); font-size: 13px;
   cursor: pointer; transition: all .15s;
 }
 .status-btn:hover { border-color: var(--accent); color: var(--text); }
 .status-btn.active {
-  background: rgba(108,123,255,.15);
-  color: var(--accent); border-color: var(--accent);
+  background: rgba(79, 70, 229, 0.1);
+  color: var(--accent); border-color: var(--accent); font-weight: 600;
 }
 .status-btn[data-status="doing"].active {
-  background: rgba(240,168,67,.15); color: var(--doing); border-color: var(--doing);
+  background: rgba(217, 119, 6, 0.1); color: var(--doing); border-color: var(--doing); font-weight: 600;
 }
 .status-btn[data-status="done"].active {
-  background: rgba(62,207,142,.15); color: var(--green); border-color: var(--green);
+  background: rgba(16, 185, 129, 0.1); color: var(--green); border-color: var(--green); font-weight: 600;
 }
 
 /* ---- status badges ---- */
@@ -134,17 +135,17 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
   font-size: 11px; padding: 3px 9px;
   border-radius: 20px; font-weight: 600;
 }
-.badge-todo  { background: rgba(122,130,160,.15); color: var(--text-muted); }
-.badge-doing { background: rgba(240,168,67,.15);  color: var(--doing); }
-.badge-done  { background: rgba(62,207,142,.15);  color: var(--green); }
+.badge-todo  { background: #e2e8f0; color: #475569; }
+.badge-doing { background: rgba(217, 119, 6, 0.15);  color: #b45309; }
+.badge-done  { background: rgba(16, 185, 129, 0.15);  color: #047857; }
 
 /* ---- type badges ---- */
 .card-type-badge {
   font-size: 11px; font-weight: 600; padding: 3px 8px;
   border-radius: 20px; flex-shrink: 0; letter-spacing: .04em;
 }
-.type-課題  { background: rgba(108,123,255,.18); color: var(--accent); }
-.type-テスト { background: rgba(240,168,67,.18);  color: var(--accent2); }
+.type-課題  { background: rgba(79, 70, 229, 0.12); color: var(--accent); }
+.type-テスト { background: rgba(217, 119, 6, 0.12);  color: var(--accent2); }
 
 /* ---- label chips ---- */
 .label-chips { display: flex; flex-wrap: wrap; gap: 10px; }
@@ -163,16 +164,17 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
 
 /* ---- modal ---- */
 .modal-overlay {
-  position: fixed; inset: 0; background: rgba(0,0,0,.6);
+  position: fixed; inset: 0; background: rgba(15, 23, 42, 0.4);
   display: flex; align-items: center; justify-content: center; z-index: 100;
+  backdrop-filter: blur(2px);
 }
 .modal-overlay.hidden { display: none; }
 .modal {
   background: var(--surface); border: 1px solid var(--border);
   border-radius: var(--radius); padding: 32px; max-width: 360px; width: 90%;
-  box-shadow: var(--shadow);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
 }
-.modal-msg { font-size: 15px; margin-bottom: 24px; line-height: 1.6; }
+.modal-msg { font-size: 15px; margin-bottom: 24px; line-height: 1.6; color: var(--text); }
 .modal-msg small { color: var(--text-muted); font-size: 12px; }
 .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
 
@@ -180,13 +182,13 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
 .toast {
   position: fixed; bottom: 28px; right: 28px;
   padding: 12px 20px; border-radius: var(--radius-sm);
-  background: var(--surface2); border: 1px solid var(--border);
+  background: var(--surface); border: 1px solid var(--border);
   color: var(--text); font-size: 13px; z-index: 200;
-  box-shadow: var(--shadow); transition: opacity .3s;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); transition: opacity .3s;
 }
 .toast.hidden  { display: none; }
-.toast.success { border-color: var(--green); color: var(--green); }
-.toast.error   { border-color: var(--red);   color: var(--red); }
+.toast.success { border-color: var(--green); color: #047857; background: #ecfdf5; }
+.toast.error   { border-color: var(--red);   color: #b91c1c; background: #fef2f2; }
 
 /* ---- empty state ---- */
 .empty-state {

@@ -1,12 +1,12 @@
 /* ===========================
-   views.css — 各画面固有スタイル
+   views.css — 各画面固有スタイル（ライトテーマ版）
 =========================== */
 
 /* ---- list view ---- */
 .tab-group {
   display: flex; gap: 4px;
-  background: var(--surface); padding: 4px;
-  border-radius: var(--radius-sm);
+  background: var(--surface2); padding: 4px;
+  border-radius: var(--radius-sm); border: 1px solid var(--border);
 }
 .tab {
   padding: 6px 14px; border-radius: 5px; border: none;
@@ -14,7 +14,7 @@
   font-size: 13px; cursor: pointer; transition: all .15s;
 }
 .tab:hover { color: var(--text); }
-.tab.active { background: var(--surface2); color: var(--accent); }
+.tab.active { background: var(--surface); color: var(--accent); font-weight: 600; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
 
 /* ---- label filter dropdown ---- */
 .label-filter-wrap { position: relative; }
@@ -33,14 +33,14 @@
 .btn-filter:hover       { border-color: var(--accent); color: var(--text); }
 .btn-filter.active-filter {
   border-color: var(--accent); color: var(--accent);
-  background: rgba(108,123,255,.1);
+  background: rgba(79, 70, 229, 0.08); font-weight: 600;
 }
 
 .label-dropdown {
   position: absolute; top: calc(100% + 8px); right: 0;
-  min-width: 180px; background: var(--surface2);
+  min-width: 180px; background: var(--surface);
   border: 1px solid var(--border); border-radius: var(--radius-sm);
-  padding: 10px; z-index: 50; box-shadow: var(--shadow);
+  padding: 10px; z-index: 50; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 }
 .label-dropdown.hidden { display: none; }
 
@@ -52,8 +52,8 @@
   padding: 6px 8px; border-radius: 5px; cursor: pointer;
   font-size: 13px; color: var(--text-muted); transition: background .15s;
 }
-.label-filter-item:hover   { background: var(--border); color: var(--text); }
-.label-filter-item.selected { color: var(--accent); }
+.label-filter-item:hover   { background: var(--surface2); color: var(--text); }
+.label-filter-item.selected { color: var(--accent); font-weight: 600; }
 .label-filter-item input[type=checkbox] { accent-color: var(--accent); }
 
 .btn-clear-filter {
@@ -68,43 +68,44 @@
 .task-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 14px;
+  gap: 16px;
 }
 
 .task-card {
   background: var(--surface); border: 1px solid var(--border);
   border-radius: var(--radius); padding: 18px 20px 14px;
   cursor: pointer; position: relative; overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
   transition: transform .15s, border-color .15s, box-shadow .15s;
 }
 .task-card:hover {
   transform: translateY(-2px);
   border-color: var(--accent);
-  box-shadow: 0 8px 32px rgba(108,123,255,.12);
+  box-shadow: 0 8px 20px rgba(79, 70, 229, 0.12);
 }
-.task-card.status-done { opacity: .55; }
+.task-card.status-done { opacity: .65; background: #f8fafc; }
 
 /* signature element: deadline urgency bar */
 .urgency-bar {
-  position: absolute; top: 0; left: 0; height: 3px;
-  background: linear-gradient(90deg, var(--accent), #9b87ff);
+  position: absolute; top: 0; left: 0; height: 4px;
+  background: linear-gradient(90deg, var(--accent), #818cf8);
   transition: width .5s;
 }
-.urgency-bar.urgent  { background: linear-gradient(90deg, var(--red),   #ff8040); }
-.urgency-bar.warning { background: linear-gradient(90deg, var(--doing), #ffcc55); }
+.urgency-bar.urgent  { background: linear-gradient(90deg, var(--red),   #f97316); }
+.urgency-bar.warning { background: linear-gradient(90deg, var(--doing), #f59e0b); }
 
 .card-top {
   display: flex; align-items: flex-start;
   justify-content: space-between; gap: 8px; margin-bottom: 8px;
 }
-.card-title { font-size: 15px; font-weight: 600; line-height: 1.4; flex: 1; }
+.card-title { font-size: 15px; font-weight: 600; line-height: 1.4; flex: 1; color: var(--text); }
 .card-label { font-size: 12px; color: var(--text-muted); margin-bottom: 10px; }
 .card-deadline {
   font-size: 12px; color: var(--text-muted);
   display: flex; align-items: center; gap: 5px; margin-bottom: 10px;
 }
-.card-deadline.near    { color: var(--doing); }
-.card-deadline.overdue { color: var(--red); }
+.card-deadline.near    { color: #b45309; font-weight: 600; }
+.card-deadline.overdue { color: var(--red); font-weight: 600; }
 .card-footer {
   display: flex; align-items: center; justify-content: space-between;
 }
@@ -116,11 +117,12 @@
 .detail-card {
   background: var(--surface); border: 1px solid var(--border);
   border-radius: var(--radius); padding: 32px; max-width: 640px;
+  box-shadow: var(--shadow);
 }
 .detail-type-row {
   display: flex; align-items: center; gap: 10px; margin-bottom: 20px;
 }
-.detail-title  { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+.detail-title  { font-size: 22px; font-weight: 700; margin-bottom: 6px; color: var(--text); }
 .detail-meta   {
   color: var(--text-muted); font-size: 13px;
   margin-bottom: 24px; display: flex; gap: 16px; flex-wrap: wrap;
@@ -137,24 +139,24 @@
   padding: 14px 16px; background: var(--surface2);
   border-radius: var(--radius-sm); border-left: 3px solid var(--accent);
 }
-.deadline-display.overdue { border-left-color: var(--red); }
-.deadline-display.warning { border-left-color: var(--doing); }
+.deadline-display.overdue { border-left-color: var(--red); background: #fef2f2; }
+.deadline-display.warning { border-left-color: var(--doing); background: #fffbeb; }
 
 .status-change-row { display: flex; gap: 8px; flex-wrap: wrap; }
 .status-change-btn {
   padding: 8px 16px; border-radius: var(--radius-sm);
-  border: 1px solid var(--border); background: none;
+  border: 1px solid var(--border); background: var(--surface);
   color: var(--text-muted); font-size: 13px; cursor: pointer; transition: all .15s;
 }
 .status-change-btn:hover { border-color: var(--accent); color: var(--text); }
 .status-change-btn.active-status {
-  background: rgba(108,123,255,.15); color: var(--accent); border-color: var(--accent);
+  background: rgba(79, 70, 229, 0.1); color: var(--accent); border-color: var(--accent); font-weight: 600;
 }
 .status-change-btn[data-status="doing"].active-status {
-  background: rgba(240,168,67,.15); color: var(--doing); border-color: var(--doing);
+  background: rgba(217, 119, 6, 0.1); color: var(--doing); border-color: var(--doing); font-weight: 600;
 }
 .status-change-btn[data-status="done"].active-status {
-  background: rgba(62,207,142,.15); color: var(--green); border-color: var(--green);
+  background: rgba(16, 185, 129, 0.1); color: var(--green); border-color: var(--green); font-weight: 600;
 }
 
 /* ---- label management view ---- */

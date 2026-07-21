@@ -1,24 +1,24 @@
 /* ===========================
-   base.css — トークン・リセット・レイアウト
+   base.css — トークン・リセット・レイアウト（ライトテーマ版）
 =========================== */
 
 :root {
-  --bg:        #0f1117;
-  --surface:   #181c27;
-  --surface2:  #1e2235;
-  --border:    #2a2f45;
-  --text:      #e4e8f5;
-  --text-muted:#7a82a0;
-  --accent:    #6c7bff;
-  --accent2:   #f0a843;
-  --green:     #3ecf8e;
-  --red:       #f05050;
-  --doing:     #f0a843;
-  --radius:    12px;
-  --radius-sm: 7px;
-  --shadow:    0 4px 24px rgba(0,0,0,.45);
-  --font:      'Segoe UI', 'Hiragino Sans', sans-serif;
-  --mono:      'SF Mono', 'Consolas', monospace;
+  --bg:           #f8fafc; /* アプリ全体の背景（明るいオフホワイト） */
+  --surface:      #ffffff; /* サイドバーやカードの表面色（純白） */
+  --surface2:     #f1f5f9; /* 入力欄やホバー時の背景（薄いグレー） */
+  --border:       #e2e8f0; /* くっきり見える境界線 */
+  --text:         #0f172a; /* 視認性の高い濃いテキスト色 */
+  --text-muted:   #64748b; /* 補足テキスト用のグレー */
+  --accent:       #4f46e5; /* プライマリカラー（鮮やかなインディゴ） */
+  --accent2:      #d97706; /* 琥珀色（テスト・警告用） */
+  --green:        #10b981; /* 完了・成功の緑 */
+  --red:          #ef4444; /* 期限切れ・削除の赤 */
+  --doing:        #d97706; /* 進行中のカラー */
+  --radius:       12px;
+  --radius-sm:    7px;
+  --shadow:       0 4px 12px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1);
+  --font:         'Segoe UI', 'Hiragino Sans', sans-serif;
+  --mono:         'SF Mono', 'Consolas', monospace;
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -64,13 +64,13 @@ body { display: flex; min-height: 100vh; }
 }
 .logo-mark {
   width: 34px; height: 34px;
-  background: linear-gradient(135deg, var(--accent), #9b87ff);
+  background: linear-gradient(135deg, var(--accent), #818cf8);
   border-radius: 9px;
   display: grid; place-items: center;
   font-size: 13px; font-weight: 700; color: #fff;
   flex-shrink: 0;
 }
-.logo-text { font-size: 15px; font-weight: 600; letter-spacing: .02em; }
+.logo-text { font-size: 15px; font-weight: 600; letter-spacing: .02em; color: var(--text); }
 
 .sidebar-nav { display: flex; flex-direction: column; gap: 4px; }
 
@@ -89,7 +89,18 @@ body { display: flex; min-height: 100vh; }
   stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
   flex-shrink: 0;
 }
+.nav-item:hover { background: var(--surface2); color: var(--text); }
+.nav-item.active { background: rgba(79, 70, 229, 0.1); color: var(--accent); font-weight: 600; }
 
+.sidebar-footer { margin-top: auto; }
+.stat-pill {
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--surface2);
+  color: var(--text-muted);
+  font-size: 12px; text-align: center;
+  border: 1px solid var(--border);
+}
 
 /* ---- view switching ---- */
 .view { display: none; }
@@ -99,7 +110,7 @@ body { display: flex; min-height: 100vh; }
   display: flex; align-items: center; justify-content: space-between;
   margin-bottom: 28px; gap: 16px; flex-wrap: wrap;
 }
-.view-header h1 { font-size: 22px; font-weight: 600; }
+.view-header h1 { font-size: 22px; font-weight: 600; color: var(--text); }
 
 .header-controls { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .header-actions  { display: flex; gap: 10px; }

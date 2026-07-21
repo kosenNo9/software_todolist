@@ -12,11 +12,18 @@ const TaskManager = (() => {
    * エラーがなければ空配列を返す。
    * 追加：期限設定をしていない場合に加えて五桁以上の年数を打ち込んだ場合にエラーメッセージの配列を返す。
    */
-  function validate({ name, detail, deadline }) {
+  function validate({ name, detail, start, deadline }) {
     const errors = [];
     if (!name || name.trim().length === 0)   errors.push('タスク名を入力してください');
     if (name && name.trim().length > 30)      errors.push('タスク名は30文字以内です');
     if (detail && detail.length > 100)        errors.push('詳細は100文字以内です');
+    // ▼ 開始日時のバリデーションを追加
+    if (!start) {
+      errors.push('開始日時を設定してください');
+    } else if (isNaN(new Date(start).getTime())) {
+      errors.push('正しい開始日時を入力してください');
+    }
+
     if (!deadline){
       errors.push('期限を設定してください');
     }else if(isNaN(new Date(deadline).getTime())){
@@ -28,11 +35,12 @@ const TaskManager = (() => {
   /* ---------- 生成 ---------- */
 
   /** 新規タスクオブジェクトを生成して tasks 配列の先頭に追加し、保存する */
-  function create(tasks, { name, detail, deadline, type, label }) {
+  function create(tasks, { name, detail, start, deadline, type, label }) {
     const task = {
       id:        Date.now().toString(),
       name:      name.trim(),
       detail:    detail.trim(),
+      start,     //ここで開始日時を保存するデータを追加！
       deadline,
       type,
       label,
