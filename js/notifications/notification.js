@@ -41,43 +41,80 @@ const NotificationManager = (() => {
   function cancelTask(_taskId) {}
 
   function _check() {
-    if (!_getTasksFn) return;
+  if (!_getTasksFn) return;
 
-    const tasks     = _getTasksFn();
-    const now       = Date.now();
-    const MINUTE_MS = 60 * 1000;
-    const HOUR_MS   = 60 * MINUTE_MS;
-    let   changed   = false;
+  const tasks     = _getTasksFn();
+  const now       = Date.now();
+  const MINUTE_MS = 60 * 1000;
+  const HOUR_MS   = 60 * MINUTE_MS;
+  const DAY_MS    = 24 * HOUR_MS;
+  let   changed   = false;
 
-    tasks.forEach(task => {
-      if (task.status === 'done') return;
+  tasks.forEach(task => {
+    if (task.status === 'done') return;
 
-      const dl   = new Date(task.deadline).getTime();
-      const diff = dl - now;
+    const dl    = new Date(task.deadline).getTime();
+    const st    = task.start ? new Date(task.start).getTime() : null;
+    const diffDl = dl - now;
+    const diffSt = st ? st - now : null;
 
-      const WARNING_MS = 24 * HOUR_MS;
-      if (diff > 0 && diff <= WARNING_MS && diff > WARNING_MS - MINUTE_MS) {
-        _notify(`📅 明日が期限です：${task.name}`, `期限：${_fmt(task.deadline)}`, `${task.id}_warning`);
+    /* --- 期限1日前（未着手・進行中） --- */
+    if (diffDl > 0 && diffDl <= DAY_MS && diffDl > DAY_MS - MINUTE_MS) {
+      _notify(
+        `${task.name}　明日が期限です`,
+        `期限：${_fmt(task.deadline)}`,
+        `${task.id}_deadline_warning`
+      );
+    }
+
+    /* --- 開始時刻の通知（未着手のみ） --- */
+    if (task.status === 'todo' && diffSt !== null) {
+
+      /* 開始1日前 */
+      if (diffSt > 0 && diffSt <= DAY_MS && diffSt > DAY_MS - MINUTE_MS) {
+        _notify(
+          `${task.name} 明日から開始です`,
+          `開始：${_fmt(task.start)}`,
+          `${task.id}_start_day`
+        );
       }
 
-      if (diff <= 0 && diff > -MINUTE_MS && !task.notifiedExpired) {
-        _notify(`⚠️ 期限になりました：${task.name}`, `今すぐ取り掛かりましょう！`, `${task.id}_expired`);
-        task.notifiedExpired = true;
-        changed = true;
+      /* 開始1時間前 */
+      if (diffSt > 0 && diffSt <= HOUR_MS && diffSt > HOUR_MS - MINUTE_MS) {
+        _notify(
+          `${task.name} 1時間後から開始です`,
+          `開始：${_fmt(task.start)}`,
+          `${task.id}_start_hour`
+        );
       }
 
-      if (diff < 0) {
-        const hoursOver = Math.floor(-diff / HOUR_MS);
-        if (hoursOver >= 1 && hoursOver <= 24) {
-          if ((-diff) % HOUR_MS < MINUTE_MS) {
-            _notify(`🔔 まだ未完了です：${task.name}`, `期限から ${hoursOver} 時間が経過しています`, `${task.id}_repeat_${hoursOver}`);
-          }
+      /* 開始時刻ちょうど */
+      if (diffSt <= 0 && diffSt > -MINUTE_MS) {
+        _notify(
+          `${task.name} 今から開始です`,
+          `開始：${_fmt(task.start)}`,
+          `${task.id}_start_now`
+        );
+      }
+
+      /* 開始時刻超過後1時間ごと（期限まで） */
+      if (diffSt < 0 && diffDl > 0) {
+        const hoursOver = Math.floor(-diffSt / HOUR_MS);
+        if (hoursOver >= 1 && (-diffSt) % HOUR_MS < MINUTE_MS) {
+          _notify(
+            `${task.name} 開始時刻を${hoursOver}時間すぎています、速やかに取り掛かってください`,
+            `開始：${_fmt(task.start)} 期限：${_fmt(task.deadline)}`,
+            `${task.id}_start_over_${hoursOver}`
+          );
         }
       }
-    });
+    }
 
     if (changed && _saveTasksFn) _saveTasksFn(tasks);
-  }
+  });
+
+  if (changed && _saveTasksFn) _saveTasksFn(tasks);
+}
 
   function _notify(title, body, tag) {
     new Notification(title, { body, tag, renotify: true });
